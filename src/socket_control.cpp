@@ -31,6 +31,8 @@ void SocketControl::hand_socket(const std::string &message)
         {
             this->kromblast->log("SocketControl", "Client listening to " + msg);
             this->kromblast->get_dispatcher()->listen(msg, this);
+        } else {
+            this->handle_kb_command(command, msg);
         }
         return;
     }
@@ -55,4 +57,21 @@ void SocketControl::handle(Kromblast::Api::Signal signal)
         this->ksocket->stop();
     }
     this->ksocket->send_to_clients(signal.channel + ",: " + signal.message);
+}
+
+void SocketControl::handle_kb_command(const std::string& command, const std::string& message)
+{
+    if (command == "navigate")
+    {
+        this->kromblast->get_window()->navigate(message);
+    } else if (command == "init_inject")
+    {
+        this->kromblast->get_window()->init_inject(message);
+    } else if (command == "inject")
+    {
+        this->kromblast->get_window()->inject(message);
+    } else if (command == "get_url")
+    {
+    }
+
 }

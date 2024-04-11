@@ -17,6 +17,7 @@ private:
     std::thread *socket_thread;
 
     void hand_socket(const std::string& message);
+    void handle_kb_command(const std::string& command, const std::string& message);
 
 public:
     std::string get_version();
