@@ -1,0 +1,23 @@
+{
+    "libraries": [
+        "build/libsocket_control_lib.so"
+    ],
+    "debug": true,
+    "mode": "LOCAL",
+    "path": "test/index.html",
+    "window": {
+        "size": [
+            800,
+            600
+        ],
+        "title": "Kromblast",
+        "fullscreen": false,
+        "frameless": false
+    },
+    "registry": [
+        "file://*",
+        "*://*",
+        "http://*",
+        "*://*/index.html"
+    ]
+}

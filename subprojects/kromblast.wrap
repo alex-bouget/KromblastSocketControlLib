@@ -1,0 +1,10 @@
+[wrap-file]
+directory = alex-bouget_kromblast
+lead_directory_missing = true
+source_url = https://github.com/alex-bouget/Kromblastcpp/releases/download/v0.2.1/kromblast.zip
+source_filename = kromblast.zip
+source_hash = b96a04158f97227f5edb848f66f56340e6f8d6fb7c62eb2c4a8580375c610933
+
+
+[provide]
+kromblast = kromblast_api_dep

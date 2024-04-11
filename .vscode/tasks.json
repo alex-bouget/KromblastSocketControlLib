@@ -1,0 +1,14 @@
+{
+    "tasks": [
+        {
+            "label": "C/C++: ninja générer l'app",
+            "type": "shell",
+            "command": "ninja",
+            "args": [
+                "-C",
+                "${workspaceFolder}/build",
+            ],
+        }
+    ],
+    "version": "2.0.0"
+}
