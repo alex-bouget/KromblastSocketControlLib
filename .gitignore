@@ -1,4 +1,4 @@
 subprojects/*
-!subprojects/*.wrap
+!subprojects/_*.wrap
 build
 .vscode/settings.json
