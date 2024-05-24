@@ -4,7 +4,7 @@
     ],
     "debug": true,
     "mode": "LOCAL",
-    "path": "test/index.html",
+    "host": "test/index.html",
     "window": {
         "size": [
             800,

@@ -11,7 +11,7 @@ if get_option('buildtype').startswith('debug')
   add_project_arguments('-DDEBUG', language : 'cpp')
 endif
 
-kromblast_api_dep = subproject('kromblast').get_variable('kromblast_api_dep')
+kromblast_api_dep = subproject('_kromblast').get_variable('kromblast_api_dep')
 
 socket_control_lib_dep = declare_dependency(
     include_directories : include_directories('src'),

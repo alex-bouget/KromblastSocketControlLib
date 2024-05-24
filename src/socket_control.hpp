@@ -8,25 +8,27 @@
 #include "kromblast_api_dispatcher.hpp"
 #include "ksocket.hpp"
 #include <thread>
+#include <memory>
 
 class SocketControl : public Kromblast::Class::KromLib, public Kromblast::Api::SignalHandlerInterface
 {
 private:
-    Kromblast::Api::KromblastInterface *kromblast;
-    SocketRunner *ksocket;
-    std::thread *socket_thread;
+    std::unique_ptr<SocketRunner> ksocket;
+    std::unique_ptr<std::thread> socket_thread;
 
     void hand_socket(const std::string& message);
     void handle_kb_command(const std::string& command, const std::string& message);
 
 public:
-    std::string get_version();
+    std::string get_version() override;
 
-    void set_kromblast(void *kromblast);
+    void at_start() override;
 
-    void load_functions();
+    void load_functions() override;
 
     void handle(Kromblast::Api::Signal signal);
+
+    std::string send_to_socket(Kromblast::Core::kromblast_callback_called_t *parameters);
 };
 
 #endif
