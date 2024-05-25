@@ -49,20 +49,35 @@ Client* Socket::accept() {
 }
 
 void Socket::close_server() {
+    if (sockfd == -1) {
+        return;
+    }
     int result = ::close(sockfd);
+    sockfd = -1;
     if (result < 0)
         std::cout << "ERROR closing socket." << std::endl;
     else
         std::cout << "socket disconnected." << std::endl;
 }
 
-std::string Client::read() {
-    char buffer[256];
-    bzero(buffer, 256);
-    n = ::read(sockfd, buffer, 255);
-    if (n < 0) 
+bool Client::read(std::string* message) {
+    char buffer[1024];
+    bzero(buffer, 1024);
+    int x = 0;
+    do {
+        n = ::read(sockfd, buffer + x, 1);
+        if (n <= 0) {
+            std::cout << "ERROR reading from socket." << std::endl;
+            return false;
+        }
+        x++;
+    } while (x < 1023 && buffer[x - 1] != '\0');
+    if (n <= 0) {
         std::cout << "ERROR reading from socket." << std::endl;
-    return std::string(buffer);
+        return false;
+    }
+    *message = std::string(buffer);
+    return n > 0;
 }
 
 Client::Client(int sockfd, struct sockaddr_in cli_addr, socklen_t clilen) {
@@ -74,17 +89,22 @@ Client::Client(int sockfd, struct sockaddr_in cli_addr, socklen_t clilen) {
 }
 
 Client::~Client() {
-    // close_connection();
+    close_connection();
 }
 
 void Client::write(const std::string& message) {
     n = ::write(sockfd, message.c_str(), message.length());
-    if (n < 0)
+    n += ::write(sockfd, "\0", 1);
+    if (n <= 0)
         std::cout << "ERROR writing to socket." << std::endl;
 }
 
 void Client::close_connection() {
+    if (!is_open()) {
+        return;
+    }
     int result = ::close(sockfd);
+    sockfd = -1;
     if (result < 0)
         std::cout << "ERROR closing client socket." << std::endl;
     else
@@ -92,9 +112,18 @@ void Client::close_connection() {
 }
 
 bool Client::is_open() {
+    if (sockfd == -1) {
+        return false;
+    }
     fd_set rsd = readfds;
 
     int sel = select(sockfd + 1, &rsd, 0, 0, 0);
+
+    if (sel < 0) {
+        std::cout << "ERROR on select." << std::endl;
+        sockfd = -1;
+        return false;
+    }
 
     return sel > 0;
 }
@@ -104,6 +133,7 @@ SocketRunner::SocketRunner(int portno) {
 }
 
 SocketRunner::~SocketRunner() {
+    stop();
     delete socket;
 }
 
@@ -114,13 +144,17 @@ void SocketRunner::run() {
         Client* client = socket->accept();
         threads.push_back(std::thread([client, this] {
             while (client->is_open()) {
-                std::string message = client->read();
+                std::string message;
+                if (!client->read(&message)) {
+                    break;
+                }
                 this->callback(message);
             }
             client->close_connection();
             this->mtx.lock();
             clients.erase(std::find(clients.begin(), clients.end(), client));
             this->mtx.unlock();
+            delete client;
         }));
         mtx.lock();
         clients.push_back(client);

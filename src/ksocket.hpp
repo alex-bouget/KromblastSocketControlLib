@@ -27,7 +27,7 @@ class Client {
     public:
         Client(int sockfd, struct sockaddr_in cli_addr, socklen_t clilen);
         ~Client();
-        std::string read();
+        bool read(std::string* message);
         void write(const std::string& message);
         void close_connection();
         bool is_open();
