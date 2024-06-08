@@ -27,6 +27,7 @@ struct socket_data
 struct socket_send
 {
     std::string tmpId;
+    std::string type_data;
     std::string message;
 };
 
@@ -41,7 +42,10 @@ private:
 
     socket_data get_socket_data(const std::string& message);
 
+
+    void send_socket(const std::string &message);
     void send_socket(const std::string& tmpId, const std::string& message);
+    void send_socket(const std::string &tmpId, const std::string &channel, const std::string &message);
     void send_socket(const socket_send& data);
 
 public:
@@ -54,7 +58,6 @@ public:
     void handle(Kromblast::Api::Signal signal);
 
     std::string promise(Kromblast::Core::kromblast_callback_called_t *parameters);
-    std::string send_to_socket(Kromblast::Core::kromblast_callback_called_t *parameters);
 };
 
 #endif

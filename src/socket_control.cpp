@@ -28,7 +28,7 @@ socket_data SocketControl::get_socket_data(const std::string &message)
     int middleHeader = message.find("|", startHeader);
     int endHeader = message.find("\2", middleHeader);
 
-    if (startHeader == std::string::npos || middleHeader == std::string::npos || endHeader == std::string::npos)
+    if (startHeader == (int)std::string::npos || middleHeader == (int)std::string::npos || endHeader == (int)std::string::npos)
     {
         data.error = SOCKET_DATA_ERROR_NO_HEADER;
         return data;
@@ -41,7 +41,7 @@ socket_data SocketControl::get_socket_data(const std::string &message)
     int middleMessage = message.find(":", startMessage);
     int endMessage = message.size();
 
-    if (startMessage == std::string::npos || middleMessage == std::string::npos || endMessage == std::string::npos)
+    if (startMessage == (int)std::string::npos || middleMessage == (int)std::string::npos || endMessage == (int)std::string::npos)
     {
         data.error = SOCKET_DATA_ERROR_NO_BODY;
         return data;
@@ -74,10 +74,6 @@ void SocketControl::hand_socket(const std::string &message)
         }
         else if (data.channel == "execute")
         {
-            kromblast().get_window()->inject("kromblast.socket.send(" + data.message + ")");
-        }
-        else if (data.channel == "promise")
-        {
             kromblast().get_window()->inject("kromblast.socket.promise(\"" + data.tmpId + "\", " + data.message + ")");
         }
     }
@@ -95,11 +91,6 @@ void SocketControl::hand_socket(const std::string &message)
 void SocketControl::load_functions()
 {
     kromblast().get_plugin()->claim_callback(
-        "kromblast.socket.send",
-        1,
-        BIND_CALLBACK(SocketControl::send_to_socket),
-        std::vector<std::regex>{std::regex("^.*$")});
-    kromblast().get_plugin()->claim_callback(
         "kromblast.socket.promise",
         2,
         BIND_CALLBACK(SocketControl::promise),
@@ -112,7 +103,7 @@ void SocketControl::handle(Kromblast::Api::Signal signal)
     {
         this->ksocket->stop();
     }
-    this->ksocket->send_to_clients(signal.channel + ",: " + signal.message);
+    this->send_socket(signal.channel, signal.message);
 }
 
 void SocketControl::handle_kb_command(const std::string &command, const std::string &message)
@@ -134,28 +125,31 @@ void SocketControl::handle_kb_command(const std::string &command, const std::str
     }
 }
 
+void SocketControl::send_socket(const std::string &message)
+{
+    send_socket("0000", message);
+}
+
 void SocketControl::send_socket(const std::string &tmpId, const std::string &message)
 {
-    send_socket({tmpId, message});
+    send_socket(tmpId, "response", message);
+}
+
+void SocketControl::send_socket(const std::string &tmpId, const std::string &channel, const std::string &message)
+{
+    send_socket({tmpId, channel, message});
 }
 
 void SocketControl::send_socket(const socket_send &data)
 {
-    std::string message = "\1response|" + data.tmpId + "\2" + data.message;
+    std::string message = "\1" + data.type_data + "|" + data.tmpId + "\2" + data.message;
     ksocket->send_to_clients(message);
 }
 
 std::string SocketControl::promise(Kromblast::Core::kromblast_callback_called_t *parameters)
 {
-    socket_send data;
-    data.tmpId = parameters->args.at(0);
-    data.message = parameters->args.at(1);
-    send_socket(data);
-    return R"({"ok": true})";
-}
-
-std::string SocketControl::send_to_socket(Kromblast::Core::kromblast_callback_called_t *parameters)
-{
-    send_socket("0000", parameters->args.at(0));
+    send_socket(
+        parameters->args.at(0),
+        parameters->args.at(1));
     return R"({"ok": true})";
 }
